@@ -1,12 +1,17 @@
 import tkinter as tk
 from tkinter import messagebox
 
-database_jurusan={
-    "Informatika": ["matematika", "logika", "pemrograman", "algoritma"],
-    "Sistem Informasi": ["manajemen", "komunikasi", "pemrograman", "basis_data"],
-    "Teknik Komputer": ["elektronika", "pemrograman", "jaringan", "sistem_operasi"],
-    "Ilmu Komputer": ["matematika", "logika", "teori_komputasi", "pemrograman"],
-    "Teknologi Informasi": ["manajemen", "komunikasi", "pemrograman", "basis_data"]
+database_jurusan = {
+    "Informatika": {"kriteria": ["matematika", "logika", "pemrograman", "algoritma"], "saran": "Perbanyak latihan coding dan pemecahan masalah berbasis algoritma."
+    },
+    "Sistem Informasi": {"kriteria": ["manajemen", "komunikasi", "pemrograman", "basis_data"],"saran": "Perkuat analisis bisnis, komunikasi tim, dan pemodelan data."
+    },
+    "Teknik Komputer": {"kriteria": ["elektronika", "pemrograman", "jaringan", "sistem_operasi"], "saran": "Fokus pada praktik perangkat keras, jaringan, dan sistem embedded."
+    },
+    "Ilmu Komputer": {"kriteria": ["matematika", "logika", "teori_komputasi", "pemrograman"], "saran": "Dalami teori komputasi, struktur data, dan analisis matematika."
+    },
+    "Teknologi Informasi": {"kriteria": ["manajemen", "komunikasi", "pemrograman", "basis_data"], "saran": "Kembangkan kemampuan implementasi sistem dan layanan TI di organisasi."
+    }
 }
 
 semua_kriteria = [
@@ -65,13 +70,23 @@ class AplikasiPakar:
         self.tampilkan_pertanyaan()
     
     def proses_hasil(self):
-        hasil=[]
-        for jurusan, syarat in database_jurusan.items():
-            if all(k in self.kriteria_terpilih for k in syarat):
-                hasil.append(jurusan)
+        hasil = []
+        for jurusan, data in database_jurusan.items():
+            syarat = data["kriteria"]
+            cocok = sum(1 for k in syarat if k in self.kriteria_terpilih)
+            skor = cocok / len(syarat)
+            if skor > 0:
+                hasil.append((jurusan, skor, data["saran"]))
 
         if hasil:
-            kesimpulan = ", ".join(hasil)
+            hasil.sort(key=lambda x: x[1], reverse=True)
+            top_hasil = hasil[:3]
+
+            baris = []
+            for jurusan, skor, saran in top_hasil:
+                persen = int(skor * 100)
+                baris.append(f"Jurusan: {jurusan}\nKecocokan: {persen}%\nSaran: {saran}")
+            kesimpulan = "\n\n".join(baris)
         else:
             kesimpulan = "Tidak ada jurusan yang cocok dengan kriteria Anda."
         

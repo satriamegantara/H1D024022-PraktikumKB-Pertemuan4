@@ -1,120 +1,112 @@
 # README - Sistem Pakar Rekomendasi Jurusan
 
-## 1. Fungsi Program (Singkat)
+## 1. Ringkasan Program
 
-Program `tugaspraktikumsistempakar.py` adalah aplikasi GUI sederhana berbasis Tkinter untuk **merekomendasikan jurusan** berdasarkan minat pengguna.
+Program `tugaspraktikumsistempakar.py` adalah aplikasi GUI berbasis Tkinter untuk merekomendasikan jurusan berdasarkan minat pengguna.
 
-Alur utamanya:
+Alur program:
+
 1. Pengguna menekan tombol **Mulai Rekomendasi**.
-2. Program menampilkan pertanyaan minat satu per satu (Ya/Tidak).
-3. Jawaban **Ya** disimpan sebagai kriteria yang dipilih pengguna.
-4. Setelah semua pertanyaan selesai, program membandingkan kriteria pengguna dengan syarat tiap jurusan.
-5. Program menampilkan jurusan yang cocok (atau pesan jika tidak ada yang cocok).
+2. Program menampilkan pertanyaan minat satu per satu (jawaban **Ya/Tidak**).
+3. Jawaban **Ya** disimpan sebagai kriteria terpilih.
+4. Program menghitung skor kecocokan tiap jurusan dari basis pengetahuan.
+5. Program menampilkan maksimal 3 jurusan terbaik beserta persentase kecocokan dan saran.
 
 ---
 
-## 2. Penjelasan Program per Baris (Ringkas)
+## 2. Struktur Basis Pengetahuan
 
-Berikut penjelasan berdasarkan isi file `tugaspraktikumsistempakar.py`.
+Basis pengetahuan disimpan dalam `database_jurusan` (tipe dictionary) dengan format:
+
+- key: nama jurusan
+- value:
+  - `kriteria`: daftar minat untuk jurusan tersebut
+  - `saran`: saran singkat untuk pengembangan diri
+
+Contoh data:
+
+- **Informatika**: matematika, logika, pemrograman, algoritma
+- **Sistem Informasi**: manajemen, komunikasi, pemrograman, basis data
+- **Teknik Komputer**: elektronika, pemrograman, jaringan, sistem operasi
+- **Ilmu Komputer**: matematika, logika, teori komputasi, pemrograman
+- **Teknologi Informasi**: manajemen, komunikasi, pemrograman, basis data
+
+Daftar pertanyaan disimpan pada `semua_kriteria` dalam bentuk tuple `(kode_kriteria, teks_pertanyaan)`.
+
+---
+
+## 3. Mekanisme Inferensi (Skor Kecocokan)
+
+Inferensi dilakukan pada method `proses_hasil` dengan langkah berikut:
+
+1. Untuk setiap jurusan, hitung jumlah kriteria yang cocok:
+   - `cocok = jumlah(kriteria_jurusan yang dijawab Ya)`
+2. Hitung skor kecocokan:
+   - `skor = cocok / jumlah_kriteria_jurusan`
+3. Simpan jurusan jika `skor > 0`.
+4. Urutkan hasil dari skor tertinggi.
+5. Ambil 3 jurusan teratas (`top_hasil = hasil[:3]`).
+6. Tampilkan hasil dalam format:
+   - Nama jurusan
+   - Persentase kecocokan (`int(skor * 100)`)
+   - Saran singkat jurusan
+
+Jika tidak ada jurusan dengan skor di atas 0, program menampilkan pesan:
+**"Tidak ada jurusan yang cocok dengan kriteria Anda."**
+
+---
+
+## 4. Penjelasan Komponen Program
 
 ### Import
-- Baris 1: `import tkinter as tk` -> memanggil pustaka Tkinter untuk membuat tampilan GUI.
-- Baris 2: `from tkinter import messagebox` -> memanggil kotak dialog pop-up untuk menampilkan hasil.
 
-### Basis Pengetahuan Jurusan
-- Baris 4-10: `database_jurusan` berisi pasangan:
-	- kunci: nama jurusan,
-	- nilai: daftar kriteria wajib untuk jurusan tersebut.
+- `import tkinter as tk`: untuk komponen GUI.
+- `from tkinter import messagebox`: untuk menampilkan pop-up hasil.
 
-Contoh:
-- Informatika membutuhkan minat: matematika, logika, pemrograman, algoritma.
-- Sistem Informasi membutuhkan minat: manajemen, komunikasi, pemrograman, basis_data.
+### Kelas Utama: `AplikasiPakar`
 
-### Daftar Pertanyaan
-- Baris 12-24: `semua_kriteria` berisi daftar tuple `(kode_kriteria, teks_pertanyaan)`.
-- Daftar ini digunakan sebagai urutan pertanyaan yang ditampilkan ke pengguna.
+- `__init__(self, root)`: inisialisasi window, label pertanyaan, tombol mulai, dan tombol jawaban Ya/Tidak.
+- `mulai_tanya(self)`: reset state (kriteria terpilih dan indeks pertanyaan), lalu mulai sesi tanya jawab.
+- `tampilkan_pertanyaan(self)`: menampilkan pertanyaan berdasarkan indeks aktif.
+- `jawab(self, respon)`: menyimpan jawaban Ya ke `kriteria_terpilih`, lalu lanjut ke pertanyaan berikutnya.
+- `proses_hasil(self)`: menjalankan inferensi skor, mengurutkan hasil, menyiapkan teks keluaran, dan menampilkan pop-up.
 
-### Kelas Utama Aplikasi
-- Baris 26: deklarasi kelas `AplikasiPakar`.
+### Entry Point
 
-#### Method `__init__`
-- Baris 27: konstruktor kelas menerima objek jendela `root`.
-- Baris 28: menyimpan root ke `self.root`.
-- Baris 29: memberi judul jendela.
-- Baris 30: inisialisasi list `kriteria_terpilih` untuk menyimpan jawaban Ya.
-- Baris 31: inisialisasi indeks pertanyaan dimulai dari 0.
-- Baris 33-34: membuat label awal selamat datang.
-- Baris 36-37: membuat tombol mulai yang memanggil `mulai_tanya`.
-- Baris 39-44: membuat frame jawaban berisi tombol Ya dan Tidak, masing-masing memanggil `jawab("y")` dan `jawab("t")`.
-
-#### Method `mulai_tanya`
-- Baris 46-51:
-	- reset daftar kriteria dan indeks pertanyaan,
-	- sembunyikan tombol mulai,
-	- tampilkan tombol jawaban,
-	- panggil `tampilkan_pertanyaan()`.
-
-#### Method `tampilkan_pertanyaan`
-- Baris 53-58:
-	- jika pertanyaan masih ada, ambil teks pertanyaan sesuai indeks dan tampilkan di label,
-	- jika sudah habis, lanjut ke `proses_hasil()`.
-
-#### Method `jawab`
-- Baris 60-67:
-	- jika jawaban Ya (`"y"`), ambil kode kriteria dari pertanyaan saat ini lalu simpan ke `kriteria_terpilih`,
-	- naikkan indeks pertanyaan,
-	- tampilkan pertanyaan berikutnya.
-
-#### Method `proses_hasil`
-- Baris 69-85:
-	- siapkan list `hasil`,
-	- cek setiap jurusan di `database_jurusan`,
-	- gunakan `all(...)` untuk memastikan semua syarat jurusan ada di `kriteria_terpilih`,
-	- jika cocok, jurusan ditambahkan ke `hasil`.
-- Baris 76-79: jika ada hasil, gabungkan nama jurusan; jika tidak, tampilkan pesan tidak cocok.
-- Baris 81: menampilkan hasil dengan `messagebox.showinfo`.
-- Baris 83-85: reset tampilan ke kondisi awal (frame jawaban disembunyikan, tombol mulai muncul lagi, label kembali ke teks awal).
-
-### Titik Masuk Program
-- Baris 87: memastikan kode di bawah berjalan hanya saat file dijalankan langsung.
-- Baris 88: membuat jendela Tkinter.
-- Baris 89: mengatur ukuran jendela 600x400.
-- Baris 90: membuat objek aplikasi dari kelas `AplikasiPakar`.
-- Baris 91: menjalankan loop utama GUI.
+Bagian `if __name__ == "__main__":` membuat jendela utama, mengatur ukuran `600x400`, dan menjalankan loop Tkinter.
 
 ---
 
-## 3. Cara Menjalankan Program
+## 5. Cara Menjalankan
 
 ### Prasyarat
-- Sudah terpasang Python 3.
-- Tkinter tersedia (umumnya sudah termasuk instalasi Python standar di Windows).
 
-### Langkah Menjalankan (Windows)
-1. Buka terminal di folder proyek.
-2. Jalankan perintah berikut:
+- Python 3 sudah terpasang.
+- Tkinter tersedia (umumnya bawaan instalasi Python di Windows).
+
+### Menjalankan Program
+
+Di terminal pada folder proyek:
 
 ```bash
 python tugaspraktikumsistempakar.py
 ```
 
-Jika perintah `python` tidak dikenali, coba:
+Jika `python` tidak dikenali:
 
 ```bash
 py tugaspraktikumsistempakar.py
 ```
 
-### Cara Pakai Singkat
+### Cara Menggunakan
+
 1. Klik **Mulai Rekomendasi**.
-2. Jawab semua pertanyaan dengan **Ya** atau **Tidak**.
-3. Tunggu pop-up hasil rekomendasi jurusan.
+2. Jawab seluruh pertanyaan minat dengan **Ya** atau **Tidak**.
+3. Lihat hasil rekomendasi pada pop-up (maksimal 3 jurusan teratas).
 
 ---
 
-## 4. Catatan Logika Rekomendasi
+## 6. Catatan
 
-Logika saat ini memakai pendekatan **aturan ketat (strict matching)**:
-- Satu jurusan akan direkomendasikan hanya jika **semua** kriterianya terpenuhi.
-- Jika ada satu syarat jurusan yang tidak dipilih, jurusan tersebut tidak masuk hasil.
-
-Pendekatan ini cocok untuk latihan sistem pakar berbasis aturan sederhana.
+- Model ini menggunakan pendekatan rule-based dengan skor sederhana.
+- Hasil bukan keputusan mutlak, melainkan rekomendasi awal berdasarkan minat yang dipilih pengguna.
